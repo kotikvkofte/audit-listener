@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-auditlogs-table
+      author: Артём Краковцев
+      changes:
+        - createTable:
+            tableName: audit_logs
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: audit_id
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: text
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_name
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: args
+                  type: text
+              - column:
+                  name: result
+                  type: text
+              - column:
+                  name: error
+                  type: text
+              - column:
+                  name: log_level
+                  type: text
+              - column:
+                  name: timestamp
+                  type: timestamp
+                  defaultValue: now
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kafka_topic
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kafka_offset
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kafka_partition
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: audit_logs
+            columnNames: kafka_topic, kafka_offset, kafka_partition
+            constraintName: uk_audit_topic_partition_offset

@@ -1,0 +1,68 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-http-log-table
+      author: Артём Краковцев
+      changes:
+        - createTable:
+            tableName: http_logs
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message_id
+                  type: text
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: method
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_code
+                  type: int
+              - column:
+                  name: request_body
+                  type: text
+              - column:
+                  name: response_body
+                  type: text
+              - column:
+                  name: timestamp
+                  type: timestamp
+                  defaultValue: now
+                  constraints:
+                    nullable: false
+              - column:
+                  name: direction
+                  type: text
+              - column:
+                  name: kafka_topic
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kafka_offset
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kafka_partition
+                  type: int
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: http_logs
+            columnNames: kafka_topic, kafka_offset, kafka_partition
+            constraintName: uk_http_topic_partition_offset
