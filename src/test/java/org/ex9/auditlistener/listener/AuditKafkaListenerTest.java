@@ -6,6 +6,7 @@ import org.ex9.auditlistener.event.AuditLogDto;
 import org.ex9.auditlistener.event.HttpLogDto;
 import org.ex9.auditlistener.service.AuditLogService;
 import org.ex9.auditlistener.service.HttpLogService;
+import org.ex9.auditlistener.service.KafkaPublishService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,8 @@ class AuditKafkaListenerTest {
     private AuditLogService auditLogService;
     @Mock
     private HttpLogService httpLogService;
+    @Mock
+    private KafkaPublishService kafkaPublishService;
 
     @InjectMocks
     private AuditKafkaListener listener;
@@ -31,7 +34,7 @@ class AuditKafkaListenerTest {
 
     @BeforeEach
     void setUp() {
-        listener = new AuditKafkaListener(auditLogService, httpLogService, objectMapper);
+        listener = new AuditKafkaListener(auditLogService, httpLogService, objectMapper, kafkaPublishService);
     }
 
     @Test
@@ -45,7 +48,7 @@ class AuditKafkaListenerTest {
         ConsumerRecord<String, String> record =
                 new ConsumerRecord<>("topic", 0, 0, "key", message);
 
-        listener.handle(record);
+        listener.handleAuditMethods(record);
 
         verify(auditLogService).saveAuditLog(eq(auditLogDto), eq(record));
         verifyNoInteractions(httpLogService);
@@ -63,7 +66,7 @@ class AuditKafkaListenerTest {
         ConsumerRecord<String, String> record =
                 new ConsumerRecord<>("topic", 0, 0, "key", message);
 
-        listener.handle(record);
+        listener.handleAuditRequests(record);
 
         verify(httpLogService).saveHttpLog(eq(httpLogDto), eq(record));
         verifyNoInteractions(auditLogService);
@@ -75,19 +78,8 @@ class AuditKafkaListenerTest {
         ConsumerRecord<String, String> record =
                 new ConsumerRecord<>("topic", 0, 0, "key", invalidJson);
 
-        assertThrows(RuntimeException.class, () -> listener.handle(record));
-
-        verifyNoInteractions(auditLogService, httpLogService);
+        listener.handleAuditRequests(record);
+        verify(kafkaPublishService).sendError(anyString());
     }
 
-    @Test
-    void handleUnknownMessageType_shouldThrowException() {
-        String unknownMessage = "{\"unknownField\":\"value\"}";
-        ConsumerRecord<String, String> record =
-                new ConsumerRecord<>("topic", 0, 0, "key", unknownMessage);
-
-        assertThrows(RuntimeException.class, () -> listener.handle(record));
-
-        verifyNoInteractions(auditLogService, httpLogService);
-    }
 }

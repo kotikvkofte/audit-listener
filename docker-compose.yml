@@ -4,29 +4,43 @@ services:
     build:
       context: .
     depends_on:
-      db:
+      elasticsearch:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+      SPRING_ELASTICSEARCH_USERNAME: elastic
+      SPRING_ELASTICSEARCH_PASSWORD: ${ES_PASSWORD}
     ports:
-      - "8080:8080"
-  db:
-    image: postgres:latest
+      - "8081:8081"
+
+  elasticsearch:
+    image: elasticsearch:8.19.2
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: ${DB_NAME}
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "9200:9200"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "curl -s -u elastic:${ES_PASSWORD} http://localhost:9200 > /dev/null || exit 1" ]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 5
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - es-data:/usr/share/elasticsearch/data
+
+  es-init:
+    image: curlimages/curl:8.5.0
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+      curl -s -u elastic:${ES_PASSWORD} -X PUT http://elasticsearch:9200/audit-methods -H 'Content-Type: application/json' -d @/scripts/audit-methods.json &&
+      curl -s -u elastic:${ES_PASSWORD} -X PUT http://elasticsearch:9200/audit-requests -H 'Content-Type: application/json' -d @/scripts/audit-requests.json
+      "
+    volumes:
+      - ./scripts:/scripts
 
 volumes:
-  db-data:
+  es-data:
