@@ -1,60 +1,55 @@
 package org.ex9.auditlistener.model;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 /**
  * JPA-сущность для хранения HTTP-логов в базе данных.
  * @author Краковцев Артём
  */
-@Entity
-@Table(name = "http_logs")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(indexName = "audit-requests")
 public class HttpLogEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name = "message_id", nullable = false)
+    @Field(type = FieldType.Keyword)
     private String messageId;
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
+    private Long timestamp;
 
-    @Column(name = "direction", nullable = false, length = 50)
+    @Field(type = FieldType.Keyword)
     private String direction;
 
-    @Column(name = "method", nullable = false, length = 10)
+    @Field(type = FieldType.Text)
     private String method;
 
-    @Column(name = "status_code", nullable = false)
+    @Field(type = FieldType.Keyword)
     private Integer statusCode;
 
-    @Column(name = "url", nullable = false, columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String url;
 
-    @Column(name = "request_body", columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String requestBody;
 
-    @Column(name = "response_body", columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String responseBody;
-
-    @Column(name = "kafka_topic", nullable = false, length = 255)
-    private String kafkaTopic;
-
-    @Column(name = "kafka_partition", nullable = false)
-    private Integer kafkaPartition;
-
-    @Column(name = "kafka_offset", nullable = false)
-    private Long kafkaOffset;
 
 }

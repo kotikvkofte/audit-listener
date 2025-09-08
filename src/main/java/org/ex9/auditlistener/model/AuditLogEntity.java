@@ -1,63 +1,57 @@
 package org.ex9.auditlistener.model;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * JPA-сущность для хранения Audit-логов в базе данных.
  * @author Краковцев Артём
  */
-@Entity
-@Table(name = "audit_logs")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(indexName = "audit-methods")
 public class AuditLogEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name = "message_id", nullable = false)
+    @Field(type = FieldType.Keyword)
+    private UUID auditId;
+
+    @Field(type = FieldType.Keyword)
     private String messageId;
 
-    @Column(name = "audit_id", nullable = false)
-    private String eventId;
-
-    @Column(name = "type", nullable = false, length = 50)
+    @Field(type = FieldType.Text)
     private String eventType;
 
-    @Column(name = "method_name", nullable = false, length = 500)
-    private String methodName;
+    @Field(type = FieldType.Text)
+    private String method;
 
-    @Column(name = "args", columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String args;
 
-    @Column(name = "result", columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String result;
 
-    @Column(name = "error", columnDefinition = "TEXT")
+    @Field(type = FieldType.Text)
     private String error;
 
-    @Column(name = "log_level", length = 20)
-    private String logLevel;
+    @Field(type = FieldType.Keyword)
+    private String level;
 
-    @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
-
-    @Column(name = "kafka_topic", nullable = false, length = 255)
-    private String kafkaTopic;
-
-    @Column(name = "kafka_partition", nullable = false)
-    private Integer kafkaPartition;
-
-    @Column(name = "kafka_offset", nullable = false)
-    private Long kafkaOffset;
+    @Field(type = FieldType.Date, format = DateFormat.date_time)
+    private Instant timestamp;
 
 }

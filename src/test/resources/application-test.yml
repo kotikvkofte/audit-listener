@@ -1,0 +1,8 @@
+spring:
+  data:
+    elasticsearch:
+      client:
+        rest:
+          uris: http://localhost:9200
+          username: elastic
+          password: test

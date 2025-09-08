@@ -3,12 +3,16 @@ spring:
     name: audit-listener
   kafka:
     bootstrap-servers: localhost:9092
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-    enabled: true
-  datasource:
-    url: jdbc:postgresql://localhost:5432/audit-listener-db
-    username: user
-    password: 1
+  elasticsearch:
+    uris: http://localhost:9200
+    username: elastic
+    password: password123
+
 server:
   port: 8081
+
+audit:
+  kafka:
+    topic:
+      requestsTopic: audit.requests
+      methodsTopic: audit.methods
